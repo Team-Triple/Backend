@@ -37,7 +37,7 @@ public class Group extends BaseEntity {
 
     private String thumbnailUrl;
 
-    private int currentMemberCount;
+    private int currentMemberCount = 1;
 
     private int memberLimit;
 }

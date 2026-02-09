@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.triple.backend.global.common.BaseEntity;
 import org.triple.backend.group.entity.group.Group;
 import org.triple.backend.payment.entity.Payment;
+import org.triple.backend.travel.entity.TravelItinerary;
 import org.triple.backend.user.entity.User;
 
 import java.math.BigDecimal;
@@ -27,11 +28,17 @@ public class Invoice extends BaseEntity {
     @JoinColumn(name = "creator_user_id")
     private User creator;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "travel_itinerary_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    private TravelItinerary travelItinerary;
+
     @OneToMany(mappedBy = "invoice")
     private List<InvoiceUser> invoiceUsers = new ArrayList<>();
 
     @OneToMany(mappedBy = "invoice")
     private List<Payment> payments = new ArrayList<>();
+
+    private InvoiceStatus invoiceStatus;
 
     private String title;
 

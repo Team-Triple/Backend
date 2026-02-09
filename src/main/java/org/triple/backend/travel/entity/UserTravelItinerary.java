@@ -19,4 +19,5 @@ public class UserTravelItinerary {
     @JoinColumn(name = "travel_itinerary_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private TravelItinerary travelItinerary;
 
+    private UserRole userRole;
 }

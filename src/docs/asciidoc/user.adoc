@@ -5,12 +5,7 @@
 :toc: left
 :toclevels: 3
 
-== User test
+== 내 정보 조회
+include::{snippets}/users/me/http-request.adoc[]
+include::{snippets}/users/me/http-response.adoc[]
 
-=== Request
-
-include::{snippets}/user/http-request.adoc[]
-
-=== Response
-
-include::{snippets}/user/http-response.adoc[]

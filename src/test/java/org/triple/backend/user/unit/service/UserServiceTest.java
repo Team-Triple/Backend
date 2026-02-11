@@ -3,7 +3,7 @@ package org.triple.backend.user.unit.service;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.triple.backend.common.ServiceTest;
+import org.triple.backend.common.annotation.ServiceTest;
 import org.triple.backend.global.error.BusinessException;
 import org.triple.backend.user.dto.response.UserInfoResponseDto;
 import org.triple.backend.user.entity.Gender;
@@ -17,7 +17,8 @@ import java.time.LocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class UserServiceTest extends ServiceTest {
+@ServiceTest
+class UserServiceTest {
 
     @Autowired
     private UserService userService;

@@ -42,7 +42,7 @@ jobs:
 
       - name: .env 파일 생성
         run: |
-          echo "${ENV_CONTENT}" > .env
+          printf "%s" "${ENV_CONTENT}" > .env
 
       - name: .env 업로드
         env:

@@ -13,10 +13,10 @@ import org.triple.backend.auth.oauth.OauthClient;
 import org.triple.backend.auth.oauth.OauthProvider;
 import org.triple.backend.auth.oauth.OauthUser;
 import org.triple.backend.auth.oauth.kakao.KakaoOauthClient;
+import org.triple.backend.auth.session.SessionManager;
 import org.triple.backend.common.annotation.IntegrationTest;
 import org.triple.backend.user.entity.User;
 import org.triple.backend.user.repository.UserJpaRepository;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
@@ -30,13 +30,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @IntegrationTest
 class AuthIntegrationTest {
 
-    private static final String USER_SESSION_KEY = "USER_ID";
-
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Autowired
     private UserJpaRepository userJpaRepository;
@@ -84,7 +79,7 @@ class AuthIntegrationTest {
         HttpSession session = result.getRequest().getSession(false);
         assertThat(session).isNotNull();
 
-        Object sessionUserIdObj = session.getAttribute(USER_SESSION_KEY);
+        Object sessionUserIdObj = session.getAttribute(SessionManager.SESSION_KEY);
         assertThat(sessionUserIdObj).isNotNull();
 
         User saved = userJpaRepository.findByProviderAndProviderId(OauthProvider.KAKAO, "kakao-1234")
@@ -117,7 +112,7 @@ class AuthIntegrationTest {
         // then
         HttpSession session = result.getRequest().getSession(false);
         if (session != null) {
-            assertThat(session.getAttribute(USER_SESSION_KEY)).isNull();
+            assertThat(session.getAttribute(SessionManager.SESSION_KEY)).isNull();
         }
 
         assertThat(userJpaRepository.count()).isEqualTo(0);

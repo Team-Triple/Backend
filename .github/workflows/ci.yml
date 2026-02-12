@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      packages: write
 
     steps:
       - name: 깃허브 리포지토리에서 코드 받아오기
@@ -26,15 +27,8 @@ jobs:
       - name: Gradle 세팅
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
-      - name: Gralde 실행 권한 변경
+      - name: Gradlew 실행 권한
         run: chmod +x ./gradlew
-
-      - name: CI application-dev.yml 생성 - main
-        if: ${{ secrets.APPLICATION_YML_B64 != ''}}
-        run: |
-          mkdir -p src/main/resources
-          echo "${{ secrets.APPLICATION_YML_B64 }}" | base64 -d > src/main/resources/application.yml
-          chmod 600 src/main/resources/application.yml
 
       - name: 테스트 수행
         env:
@@ -44,6 +38,16 @@ jobs:
       - name: 빌드
         run: ./gradlew build -x test
 
-      - name: CI 설정 파일 삭제
-        if: always()
-        run: rm -rf .ci
+      - name: GHCR 로그인
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: 도커 이미지 생성
+        run: |
+          docker build \
+            -t ghcr.io/${{ github.repository }}:${{ github.ref_name }} \
+            -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
+
+      - name: ghcr에 이미지 push
+        run: |
+          docker push ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+          docker push ghcr.io/${{ github.repository }}:${{ github.sha }}

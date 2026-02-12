@@ -1,0 +1,9 @@
+services:
+  app:
+    image: ghcr.io/Team-Triple/Backend:${IMAGE_TAG}
+    container_name: app
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    restart: always

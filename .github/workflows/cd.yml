@@ -1,0 +1,82 @@
+name: CD
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 브랜치 분기 기본 환경변수 세팅
+        run: |
+          if [ "${GITHUB_REF_NAME}" = "develop" ]; then
+            echo "TARGET_HOST=${{ secrets.DEV_HOST }}" >> $GITHUB_ENV
+            echo "SSH_KEY=${{ secrets.EC2_SSH_KEY_DEV }}" >> $GITHUB_ENV
+            echo "IMAGE_TAG=develop" >> $GITHUB_ENV
+            echo "ENV_CONTENT<<EOF" >> $GITHUB_ENV
+            echo "${{ secrets.ENV_DEV }}" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          else
+            echo "TARGET_HOST=${{ secrets.PROD_HOST }}" >> $GITHUB_ENV
+            echo "SSH_KEY=${{ secrets.EC2_SSH_KEY_PROD }}" >> $GITHUB_ENV
+            echo "IMAGE_TAG=main" >> $GITHUB_ENV
+            echo "ENV_CONTENT<<EOF" >> $GITHUB_ENV
+            echo "${{ secrets.ENV_PROD }}" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          fi
+
+      - name: SSH key 파일 생성
+        run: |
+          mkdir -p ~/.ssh
+          echo "${SSH_KEY}" > ~/.ssh/deploy_key.pem
+          chmod 600 ~/.ssh/deploy_key.pem
+
+      - name: deploy 디렉토리 준비
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          DEPLOY_PATH="${DEPLOY_PATH:-/home/ubuntu/deploy}"
+          ssh -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no ubuntu@${TARGET_HOST} "mkdir -p ${DEPLOY_PATH}"
+
+      - name: .env 파일 생성
+        run: |
+          echo "${ENV_CONTENT}" > .env
+
+      - name: .env 업로드
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+
+          scp -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no \
+            .env \
+            ubuntu@${TARGET_HOST}:${DEPLOY_PATH}/.env
+
+          ssh -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no \
+            ubuntu@${TARGET_HOST} \
+            "chmod 600 ${DEPLOY_PATH}/.env"
+
+      - name: docker-compose.yml 업로드
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          DEPLOY_PATH="${DEPLOY_PATH:-/home/ubuntu/deploy}"
+          
+          scp -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no \
+          docker-compose.yml \
+          ubuntu@${TARGET_HOST}:${DEPLOY_PATH}/docker-compose.yml
+
+      - name: 배포 및 실행
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          DEPLOY_PATH="${DEPLOY_PATH:-/home/ubuntu/deploy}"
+
+          ssh -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no ubuntu@${TARGET_HOST} "\
+            set -e; \
+            cd ${DEPLOY_PATH}; \
+            docker pull ghcr.io/${{ github.repository }}:${IMAGE_TAG}; \
+            IMAGE_TAG=${IMAGE_TAG} docker compose up -d; \
+            docker image prune -f \
+          "

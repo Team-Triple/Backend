@@ -9,6 +9,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: 리포지토리에서 코드 가져오기
+        uses: actions/checkout@v4
+
       - name: SSH key 파일 생성
         run: |
           mkdir -p ~/.ssh

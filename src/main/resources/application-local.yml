@@ -1,9 +1,9 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${MYSQL_URL}
-    username: ${MYSQL_USERNAME}
-    password: ${MYSQL_PASSWORD}
+    url: jdbc:mysql://localhost:3306/triple
+    username: triple
+    password: triple
 
   jpa:
     hibernate:
@@ -12,3 +12,7 @@ spring:
       hibernate:
         format_sql: true
         show_sql: false
+
+logging:
+  level:
+    org.hibernate.SQL: debug

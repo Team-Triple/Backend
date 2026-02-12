@@ -1,0 +1,11 @@
+= User API 문서
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 3
+
+== 내 정보 조회
+include::{snippets}/users/me/http-request.adoc[]
+include::{snippets}/users/me/http-response.adoc[]
+

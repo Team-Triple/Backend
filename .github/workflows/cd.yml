@@ -9,22 +9,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 브랜치 분기 기본 환경변수 세팅
-        run: |
-          if [ "${GITHUB_REF_NAME}" = "develop" ]; then
-            echo "TARGET_HOST=${{ secrets.DEV_HOST }}" >> $GITHUB_ENV
-            echo "SSH_KEY=${{ secrets.EC2_SSH_KEY_DEV }}" >> $GITHUB_ENV
-            echo "IMAGE_TAG=develop" >> $GITHUB_ENV
-          else
-            echo "TARGET_HOST=${{ secrets.PROD_HOST }}" >> $GITHUB_ENV
-            echo "SSH_KEY=${{ secrets.EC2_SSH_KEY_PROD }}" >> $GITHUB_ENV
-            echo "IMAGE_TAG=main" >> $GITHUB_ENV
-          fi
-
       - name: SSH key 파일 생성
         run: |
           mkdir -p ~/.ssh
-          echo "${SSH_KEY}" > ~/.ssh/deploy_key.pem
+          
+          if [ "${GITHUB_REF_NAME}" = "develop" ]; then
+          echo "${{ secrets.EC2_SSH_KEY_DEV }}" > ~/.ssh/deploy_key.pem
+          echo "TARGET_HOST=${{ secrets.DEV_HOST }}" >> $GITHUB_ENV
+          echo "IMAGE_TAG=develop" >> $GITHUB_ENV
+          else
+          echo "${{ secrets.EC2_SSH_KEY_PROD }}" > ~/.ssh/deploy_key.pem
+          echo "TARGET_HOST=${{ secrets.PROD_HOST }}" >> $GITHUB_ENV
+          echo "IMAGE_TAG=main" >> $GITHUB_ENV
+          fi
+          
           chmod 600 ~/.ssh/deploy_key.pem
 
       - name: deploy 디렉토리 준비

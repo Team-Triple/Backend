@@ -1,16 +1,27 @@
 package org.triple.backend.group.entity.group;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.triple.backend.global.common.BaseEntity;
 import org.triple.backend.group.entity.joinApply.JoinApply;
+import org.triple.backend.group.entity.userGroup.JoinStatus;
+import org.triple.backend.group.entity.userGroup.Role;
 import org.triple.backend.group.entity.userGroup.UserGroup;
 import org.triple.backend.user.entity.User;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 @Entity
 @Table(name = "travel_group")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Group extends BaseEntity {
 
     @Id
@@ -21,23 +32,35 @@ public class Group extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private GroupKind groupKind;
 
-    @OneToMany(mappedBy = "group")
+    @OneToMany(mappedBy = "group", cascade = CascadeType.PERSIST, orphanRemoval = true)
+    @Builder.Default
     private List<UserGroup> userGroups = new ArrayList<>();
 
     @OneToMany(mappedBy = "group")
+    @Builder.Default
     private List<JoinApply> joinApplies = new ArrayList<>();
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
-    private User owner;
 
     private String name;
 
     private String description;
 
-    private String thumbnailUrl;
+    private String thumbNailUrl;
 
+    @Builder.Default
     private int currentMemberCount = 1;
 
     private int memberLimit;
+
+    public void addMember(User user, Role role) {
+        UserGroup userGroup = UserGroup.builder()
+                .user(user)
+                .group(this)
+                .role(role)
+                .joinStatus(JoinStatus.JOINED)
+                .joinedAt(LocalDateTime.now())
+                .build();
+
+        this.userGroups.add(userGroup);
+        user.getUserGroups().add(userGroup);
+    }
 }

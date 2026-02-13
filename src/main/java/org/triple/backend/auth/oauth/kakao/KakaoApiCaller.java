@@ -28,7 +28,7 @@ public class KakaoApiCaller {
     @Retryable(
             retryFor = {OauthTransientException.class},
             maxAttempts = 3,
-            backoff = @Backoff(delay = 300, multiplier = 2.0, maxDelay = 1000)
+            backoff = @Backoff(delay = 300, multiplier = 2.0, maxDelay = 3000)
     )
     public String requestAccessToken(final String code) {
         try {
@@ -68,7 +68,7 @@ public class KakaoApiCaller {
     @Retryable(
             retryFor = {OauthTransientException.class},
             maxAttempts = 3,
-            backoff = @Backoff(delay = 300, multiplier = 2.0, maxDelay = 1000)
+            backoff = @Backoff(delay = 300, multiplier = 2.0, maxDelay = 3000)
     )
     public KakaoUserInfoResponseDto requestUserInfo(final String accessToken) {
         try {

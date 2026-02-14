@@ -23,10 +23,7 @@ public class CsrfInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         if (!(handler instanceof HandlerMethod handlerMethod)) return true;
         if (SAFE_METHODS.contains(request.getMethod())) return true;
-
-        boolean required = handlerMethod.hasMethodAnnotation(LoginRequired.class)
-                || handlerMethod.getBeanType().isAnnotationPresent(LoginRequired.class);
-        if (!required) return true;
+        if (!hasLoginRequiredAnnotation(handlerMethod)) return true;
 
         String token = request.getHeader(CsrfTokenManager.CSRF_HEADER);
         if (!csrfTokenManager.isValid(request, token)) {
@@ -34,5 +31,10 @@ public class CsrfInterceptor implements HandlerInterceptor {
         }
 
         return true;
+    }
+
+    private boolean hasLoginRequiredAnnotation(HandlerMethod handlerMethod) {
+        return handlerMethod.hasMethodAnnotation(LoginRequired.class)
+                || handlerMethod.getBeanType().isAnnotationPresent(LoginRequired.class);
     }
 }

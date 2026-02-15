@@ -6,7 +6,6 @@ import java.time.LocalDate;
 
 @Builder
 public record UserInfoResponseDto(
-        Long userId,
         String nickname,
         String gender,
         LocalDate birth,

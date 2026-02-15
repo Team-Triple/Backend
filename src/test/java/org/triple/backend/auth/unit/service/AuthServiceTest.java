@@ -136,6 +136,6 @@ public class AuthServiceTest {
 
         // then
         HttpSession session = servletRequest.getSession(false);
-        assertThat(session.getAttribute("USER_ID")).isEqualTo(saved.getId());
+        assertThat(session.getAttribute(SessionManager.SESSION_KEY)).isEqualTo(saved.getId());
     }
 }

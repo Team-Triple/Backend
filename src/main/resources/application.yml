@@ -2,8 +2,9 @@
   servlet:
     session:
       cookie:
-        same-site: "none"
+        same-site: none
         secure: true
+        http-only: false
 
 spring:
   datasource:

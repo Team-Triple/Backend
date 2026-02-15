@@ -43,8 +43,11 @@ public class UserIntegrationTest {
         mockMvc.perform(get("/users/me")
                         .sessionAttr(USER_SESSION_KEY, saved.getId()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(saved.getId()))
-                .andExpect(jsonPath("$.nickname").value("상윤"));
+                .andExpect(jsonPath("$.nickname").value("상윤"))
+                .andExpect(jsonPath("$.gender").value(Gender.MALE.toString()))
+                .andExpect(jsonPath("$.birth").value("1999-01-01"))
+                .andExpect(jsonPath("$.description").value("소개글"))
+                .andExpect(jsonPath("$.profileUrl").value("https://example.com/profile.png"));
     }
 
     @Test

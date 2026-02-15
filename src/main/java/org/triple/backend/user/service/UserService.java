@@ -21,9 +21,8 @@ public class UserService {
         User savedUser = userJpaRepository.findById(userId).orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
         return UserInfoResponseDto.builder()
-                .userId(savedUser.getId())
                 .nickname(savedUser.getNickname())
-                .gender(savedUser.getGender().toString())
+                .gender((savedUser.getGender() != null ? savedUser.getGender().toString() : null))
                 .birth(savedUser.getBirth())
                 .description(savedUser.getDescription())
                 .profileUrl(savedUser.getProfileUrl())

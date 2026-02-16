@@ -30,7 +30,7 @@ public class CookieManagerTest {
         String setCookie = headerValueCaptor.getValue();
         assertThat(setCookie).contains("login_status=true");
         assertThat(setCookie).contains("Path=/");
-        assertThat(setCookie).contains("Max-Age=86400");          // 1 day = 86400 sec
+        assertThat(setCookie).contains("Max-Age=86400");
         assertThat(setCookie).contains("Secure");
         assertThat(setCookie).contains("SameSite=None");
         assertThat(setCookie).doesNotContainIgnoringCase("HttpOnly"); // httpOnly(false)면 보통 HttpOnly 속성이 안 붙음

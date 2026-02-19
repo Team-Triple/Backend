@@ -19,4 +19,12 @@ public class ControllerAdvice {
                 .status(errorCode.getStatus())
                 .body(new ErrorResponse(errorCode.getMessage()));
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.warn("잘못된 요청 값: {}", e.getMessage());
+        return ResponseEntity
+                .badRequest()
+                .body(new ErrorResponse(e.getMessage()));
+    }
 }

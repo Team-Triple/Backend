@@ -9,10 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import org.triple.backend.auth.cookie.CookieManager;
 import org.triple.backend.auth.dto.request.AuthLoginRequestDto;
 import org.triple.backend.auth.dto.response.AuthLoginResponseDto;
-import org.triple.backend.auth.exception.AuthErrorCode;
 import org.triple.backend.auth.service.AuthService;
 import org.triple.backend.auth.session.CsrfTokenManager;
-import org.triple.backend.global.error.BusinessException;
+import org.triple.backend.auth.session.LoginRequired;
 
 import static org.triple.backend.global.log.MaskUtil.maskString;
 
@@ -39,6 +38,7 @@ public class AuthController {
         return result;
     }
 
+    @LoginRequired
     @PostMapping("/logout")
     public void logout(
             final HttpServletRequest request,

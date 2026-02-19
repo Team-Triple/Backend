@@ -29,7 +29,7 @@
     <!-- prod 환경에서는 로그 레벨을 INFO로 설정합니다.-->
     <springProfile name="prod">
         <logger name="org.triple.backend" level="INFO"/>
-        <logger name="org.hibernate.SQL" level="INFO"/>
+        <logger name="org.hibernate.SQL" level="WARN"/>
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
         </root>

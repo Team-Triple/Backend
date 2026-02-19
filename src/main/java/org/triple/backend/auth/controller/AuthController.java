@@ -5,10 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.triple.backend.auth.cookie.CookieManager;
 import org.triple.backend.auth.dto.request.AuthLoginRequestDto;
 import org.triple.backend.auth.dto.response.AuthLoginResponseDto;
@@ -38,5 +35,12 @@ public class AuthController {
         log.debug("응답 시점 JSESSIONID 쿠키 = {}", maskString((request.getSession(false) == null ? "none" : request.getSession(false).getId())));
         log.debug("응답 시점 헤더의 Csrf 토큰 = {}", maskString(response.getHeader(CsrfTokenManager.CSRF_HEADER)));
         return result;
+    }
+
+    @GetMapping("/logout")
+    public void logout(final HttpServletRequest request, final HttpServletResponse response) {
+        authService.logout(request);
+        cookieManager.clearLoginCookie(response);
+        cookieManager.clearSessionCookie(response);
     }
 }

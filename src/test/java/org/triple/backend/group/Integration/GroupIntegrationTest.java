@@ -161,6 +161,11 @@ public class GroupIntegrationTest {
                 .andExpect(jsonPath("$.items", hasSize(5)))
                 .andExpect(jsonPath("$.hasNext").value(false))
                 .andExpect(jsonPath("$.nextCursor").value(nullValue()))
-                .andExpect(jsonPath("$.items[*].groupId", everyItem(lessThan((nextCursor.intValue())))));
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    GroupCursorResponseDto dto = objectMapper.readValue(json, GroupCursorResponseDto.class);
+                    assertThat(dto.items())
+                            .allSatisfy(item -> assertThat(item.groupId()).isLessThan(nextCursor));
+                });
     }
 }

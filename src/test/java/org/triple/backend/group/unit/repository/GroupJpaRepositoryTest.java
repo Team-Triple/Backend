@@ -112,4 +112,21 @@ public class GroupJpaRepositoryTest {
         List<Long> ids = next.stream().map(Group::getId).toList();
         assertThat(ids).isSortedAccordingTo((a, b) -> Long.compare(b, a));
     }
+
+    @Test
+    @DisplayName("그룹 삭제 시 Group 엔티티가 삭제된다")
+    void 그룹_삭제_시_Group_엔티티가_삭제된다() {
+        // given
+        Group group = groupJpaRepository.saveAndFlush(
+                Group.create(GroupKind.PUBLIC, "여행모임", "설명", "thumb", 10)
+        );
+        Long groupId = group.getId();
+
+        // when
+        groupJpaRepository.deleteById(groupId);
+        groupJpaRepository.flush();
+
+        // then
+        assertThat(groupJpaRepository.findById(groupId)).isEmpty();
+    }
 }

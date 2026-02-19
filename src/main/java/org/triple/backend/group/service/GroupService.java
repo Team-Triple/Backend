@@ -12,6 +12,7 @@ import org.triple.backend.group.dto.response.CreateGroupResponseDto;
 import org.triple.backend.group.entity.group.Group;
 import org.triple.backend.group.entity.group.GroupKind;
 import org.triple.backend.group.entity.userGroup.Role;
+import org.triple.backend.group.exception.GroupErrorCode;
 import org.triple.backend.group.repository.GroupJpaRepository;
 import org.triple.backend.user.entity.User;
 import org.triple.backend.user.exception.UserErrorCode;
@@ -59,5 +60,11 @@ public class GroupService {
         Long nextCursor = hasNext ? rows.get(rows.size() - 1).getId() : null;
 
         return GroupCursorResponseDto.from(rows, nextCursor, hasNext);
+    }
+
+    @Transactional
+    public void delete(final Long groupId) {
+        Group group = groupJpaRepository.findById(groupId).orElseThrow(() -> new BusinessException(GroupErrorCode.GROUP_NOT_FOUND));
+        groupJpaRepository.delete(group);
     }
 }

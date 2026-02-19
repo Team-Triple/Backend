@@ -10,8 +10,11 @@ include::{snippets}/groups/create/http-request.adoc[]
 include::{snippets}/groups/create/http-response.adoc[]
 
 == 그룹 조회(PUBLIC)
-
 include::{snippets}/groups/browse-public/query-parameters.adoc[]
 include::{snippets}/groups/browse-public/http-request.adoc[]
 include::{snippets}/groups/browse-public/http-response.adoc[]
 
+== 그룹 삭제
+include::{snippets}/groups/delete/path-parameters.adoc[]
+include::{snippets}/groups/delete/http-request.adoc[]
+include::{snippets}/groups/delete/http-response.adoc[]

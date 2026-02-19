@@ -63,8 +63,16 @@ public class GroupService {
     }
 
     @Transactional
-    public void delete(final Long groupId) {
+    public void delete(final Long groupId, final Long userId) {
         Group group = groupJpaRepository.findById(groupId).orElseThrow(() -> new BusinessException(GroupErrorCode.GROUP_NOT_FOUND));
+
+        boolean isOwner = group.getUserGroups().stream()
+                        .anyMatch(ug -> ug.getUser().getId().equals(userId) && ug.getRole() == Role.OWNER);
+
+        if(!isOwner) {
+            throw new BusinessException(GroupErrorCode.NOT_GROUP_OWNER);
+        }
+
         groupJpaRepository.delete(group);
     }
 }

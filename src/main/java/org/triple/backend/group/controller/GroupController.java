@@ -30,7 +30,7 @@ public class GroupController {
 
     @LoginRequired
     @DeleteMapping("/{groupId}")
-    public void delete(@PathVariable Long groupId) {
-        groupService.delete(groupId);
+    public void delete(@PathVariable Long groupId, @LoginUser final Long userId) {
+        groupService.delete(groupId, userId);
     }
 }

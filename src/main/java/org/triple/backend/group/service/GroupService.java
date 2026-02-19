@@ -7,13 +7,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.triple.backend.global.error.BusinessException;
 import org.triple.backend.group.dto.request.CreateGroupRequestDto;
-import org.triple.backend.group.dto.response.GroupCursorResponseDto;
 import org.triple.backend.group.dto.response.CreateGroupResponseDto;
+import org.triple.backend.group.dto.response.GroupCursorResponseDto;
 import org.triple.backend.group.entity.group.Group;
 import org.triple.backend.group.entity.group.GroupKind;
 import org.triple.backend.group.entity.userGroup.Role;
 import org.triple.backend.group.exception.GroupErrorCode;
 import org.triple.backend.group.repository.GroupJpaRepository;
+import org.triple.backend.group.repository.JoinApplyJpaRepository;
+import org.triple.backend.group.repository.UserGroupJpaRepository;
 import org.triple.backend.user.entity.User;
 import org.triple.backend.user.exception.UserErrorCode;
 import org.triple.backend.user.repository.UserJpaRepository;
@@ -28,6 +30,8 @@ public class GroupService {
     private static final int MAX_PAGE_SIZE = 10;
 
     private final GroupJpaRepository groupJpaRepository;
+    private final UserGroupJpaRepository userGroupJpaRepository;
+    private final JoinApplyJpaRepository joinApplyJpaRepository;
     private final UserJpaRepository userJpaRepository;
 
     @Transactional
@@ -64,15 +68,17 @@ public class GroupService {
 
     @Transactional
     public void delete(final Long groupId, final Long userId) {
-        Group group = groupJpaRepository.findById(groupId).orElseThrow(() -> new BusinessException(GroupErrorCode.GROUP_NOT_FOUND));
 
-        boolean isOwner = group.getUserGroups().stream()
-                        .anyMatch(ug -> ug.getUser().getId().equals(userId) && ug.getRole() == Role.OWNER);
+       groupJpaRepository.findByIdForUpdate(groupId)
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.GROUP_NOT_FOUND));
 
-        if(!isOwner) {
+        if(!userGroupJpaRepository.existsByGroupIdAndUserIdAndRole(groupId, userId, Role.OWNER)) {
             throw new BusinessException(GroupErrorCode.NOT_GROUP_OWNER);
         }
 
-        groupJpaRepository.delete(group);
+        joinApplyJpaRepository.bulkDeleteByGroupId(groupId);
+        userGroupJpaRepository.bulkDeleteByGroupId(groupId);
+
+        groupJpaRepository.deleteById(groupId);
     }
 }

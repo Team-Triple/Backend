@@ -27,6 +27,7 @@ import org.triple.backend.user.repository.UserJpaRepository;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
@@ -137,5 +138,30 @@ public class AuthServiceTest {
         // then
         HttpSession session = servletRequest.getSession(false);
         assertThat(session.getAttribute(SessionManager.SESSION_KEY)).isEqualTo(saved.getId());
+    }
+
+    @Test
+    @DisplayName("로그아웃 시 세션이 무효화된다")
+    void 로그아웃_시_세션이_무효화된다() {
+        // given
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.getSession(true).setAttribute(SessionManager.SESSION_KEY, 1L);
+
+        // when
+        authService.logout(request);
+
+        // then
+        assertThat(request.getSession(false)).isNull();
+    }
+
+    @Test
+    @DisplayName("세션이 없어도 로그아웃 요청은 예외 없이 처리된다")
+    void 세션이_없어도_로그아웃_요청은_예외_없이_처리된다() {
+        // given
+        MockHttpServletRequest request = new MockHttpServletRequest();
+
+        // when & then
+        assertThatCode(() -> authService.logout(request))
+                .doesNotThrowAnyException();
     }
 }

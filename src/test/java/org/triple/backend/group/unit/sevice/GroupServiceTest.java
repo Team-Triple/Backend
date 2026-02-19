@@ -1,10 +1,10 @@
 package org.triple.backend.group.unit.sevice;
 
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.triple.backend.common.annotation.ServiceTest;
 import org.triple.backend.global.error.BusinessException;
@@ -19,13 +19,15 @@ import org.triple.backend.group.entity.userGroup.Role;
 import org.triple.backend.group.entity.userGroup.UserGroup;
 import org.triple.backend.group.exception.GroupErrorCode;
 import org.triple.backend.group.repository.GroupJpaRepository;
-import org.triple.backend.group.repository.JoinJpaApplyRepository;
+import org.triple.backend.group.repository.JoinApplyJpaRepository;
 import org.triple.backend.group.repository.UserGroupJpaRepository;
 import org.triple.backend.group.service.GroupService;
 import org.triple.backend.user.entity.User;
 import org.triple.backend.user.repository.UserJpaRepository;
 
 import java.util.List;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -49,10 +51,7 @@ public class GroupServiceTest {
     private UserGroupJpaRepository userGroupJpaRepository;
 
     @Autowired
-    private JoinJpaApplyRepository joinApplyJpaRepository;
-
-    @Autowired
-    private EntityManager em;
+    private JoinApplyJpaRepository joinApplyJpaRepository;
 
     @Test
     @DisplayName("새로운 그룹 생성 시 그룹 정보가 올바르게 저장되고 생성자가 방장으로 등록된다")
@@ -161,7 +160,6 @@ public class GroupServiceTest {
     }
 
     @Test
-    @Transactional
     @DisplayName("그룹 삭제 시 Group이 삭제되고, 연관된 UserGroup과 JoinApply도 함께 삭제된다")
     void 그룹_삭제_시_Group이_삭제되고_연관된_UserGroup과_JoinApply도_함께_삭제된다() {
         // given
@@ -188,8 +186,6 @@ public class GroupServiceTest {
                 .group(savedGroup)
                 .user(applicant)
                 .build();
-
-        savedGroup.getJoinApplies().add(joinApply);
 
         joinApplyJpaRepository.save(joinApply);
 
@@ -221,5 +217,71 @@ public class GroupServiceTest {
                     BusinessException be = (BusinessException) ex;
                     assertThat(be.getErrorCode()).isEqualTo(GroupErrorCode.GROUP_NOT_FOUND);
                 });
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @DisplayName("동일한 그룹 삭제 요청이 동시에 들어오면 하나만 성공하고 나머지는 GROUP_NOT_FOUND가 발생한다")
+    void 동일한_그룹_삭제_요청이_동시에_들어오면_하나만_성공하고_나머지는_GROUP_NOT_FOUND가_발생한다() throws InterruptedException {
+        // given
+        User owner = userJpaRepository.save(User.builder()
+                .providerId("kakao-owner")
+                .nickname("상윤")
+                .email("owner@test.com")
+                .profileUrl("http://img")
+                .build());
+
+        Group group = Group.create(GroupKind.PUBLIC, "여행모임", "설명", "thumb", 10);
+        group.addMember(owner, Role.OWNER);
+        Group savedGroup = groupJpaRepository.save(group);
+
+        int threadCount = 2;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch ready = new CountDownLatch(threadCount);
+        CountDownLatch start = new CountDownLatch(1);
+        CountDownLatch done = new CountDownLatch(threadCount);
+        AtomicInteger successCount = new AtomicInteger();
+        List<Throwable> failures = new CopyOnWriteArrayList<>();
+
+        Runnable deleteTask = () -> {
+            ready.countDown();
+            try {
+                start.await();
+                groupService.delete(savedGroup.getId(), owner.getId());
+                successCount.incrementAndGet();
+            } catch (Throwable throwable) {
+                failures.add(throwable);
+            } finally {
+                done.countDown();
+            }
+        };
+
+        try {
+            executorService.submit(deleteTask);
+            executorService.submit(deleteTask);
+
+            assertThat(ready.await(3, TimeUnit.SECONDS)).isTrue();
+
+            start.countDown();
+
+            assertThat(done.await(5, TimeUnit.SECONDS)).isTrue();
+
+            long groupNotFoundCount = failures.stream()
+                    .filter(BusinessException.class::isInstance)
+                    .map(BusinessException.class::cast)
+                    .filter(e -> e.getErrorCode() == GroupErrorCode.GROUP_NOT_FOUND)
+                    .count();
+
+            assertThat(successCount.get()).isEqualTo(1);
+            assertThat(failures).hasSize(1);
+            assertThat(groupNotFoundCount).isEqualTo(1);
+            assertThat(groupJpaRepository.findById(savedGroup.getId())).isEmpty();
+        } finally {
+            executorService.shutdownNow();
+            joinApplyJpaRepository.deleteAllInBatch();
+            userGroupJpaRepository.deleteAllInBatch();
+            groupJpaRepository.deleteAllInBatch();
+            userJpaRepository.deleteAllInBatch();
+        }
     }
 }

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.triple.backend.global.error.BusinessException;
 import org.triple.backend.group.dto.request.CreateGroupRequestDto;
-import org.triple.backend.group.dto.request.GroupCursorResponseDto;
+import org.triple.backend.group.dto.response.GroupCursorResponseDto;
 import org.triple.backend.group.dto.response.CreateGroupResponseDto;
 import org.triple.backend.group.entity.group.Group;
 import org.triple.backend.group.entity.group.GroupKind;

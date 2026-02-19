@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import org.triple.backend.auth.session.LoginRequired;
 import org.triple.backend.auth.session.LoginUser;
 import org.triple.backend.group.dto.request.CreateGroupRequestDto;
-import org.triple.backend.group.dto.request.GroupCursorResponseDto;
+import org.triple.backend.group.dto.response.GroupCursorResponseDto;
 import org.triple.backend.group.dto.response.CreateGroupResponseDto;
 import org.triple.backend.group.service.GroupService;
 

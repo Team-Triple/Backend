@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.triple.backend.common.annotation.ServiceTest;
 import org.triple.backend.group.dto.request.CreateGroupRequestDto;
-import org.triple.backend.group.dto.request.GroupCursorResponseDto;
+import org.triple.backend.group.dto.response.GroupCursorResponseDto;
 import org.triple.backend.group.dto.response.CreateGroupResponseDto;
 import org.triple.backend.group.entity.group.Group;
 import org.triple.backend.group.entity.group.GroupKind;

@@ -9,7 +9,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.triple.backend.common.ControllerTest;
 import org.triple.backend.group.controller.GroupController;
 import org.triple.backend.group.dto.request.CreateGroupRequestDto;
-import org.triple.backend.group.dto.request.GroupCursorResponseDto;
+import org.triple.backend.group.dto.response.GroupCursorResponseDto;
 import org.triple.backend.group.dto.response.CreateGroupResponseDto;
 import org.triple.backend.group.service.GroupService;
 import org.triple.backend.auth.session.CsrfTokenManager;

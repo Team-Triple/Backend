@@ -1,4 +1,4 @@
-package org.triple.backend.group.dto.request;
+package org.triple.backend.group.dto.response;
 
 import org.triple.backend.group.entity.group.Group;
 

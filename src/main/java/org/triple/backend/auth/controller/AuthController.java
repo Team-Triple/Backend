@@ -35,7 +35,7 @@ public class AuthController {
         String token = csrfTokenManager.getOrCreateToken(request);
         cookieManager.addLoginCookie(response);
         response.setHeader(CsrfTokenManager.CSRF_HEADER, token);
-        log.debug("응답 시점 JSESSIONID 쿠키 = {}", maskString(request.getSession(false).getId()));
+        log.debug("응답 시점 JSESSIONID 쿠키 = {}", maskString((request.getSession(false) == null ? "none" : request.getSession(false).getId())));
         log.debug("응답 시점 헤더의 Csrf 토큰 = {}", maskString(response.getHeader(CsrfTokenManager.CSRF_HEADER)));
         return result;
     }

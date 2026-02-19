@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Transactional;
 import org.triple.backend.common.annotation.ServiceTest;
+import org.triple.backend.global.error.BusinessException;
 import org.triple.backend.group.dto.request.CreateGroupRequestDto;
 import org.triple.backend.group.dto.response.CreateGroupResponseDto;
 import org.triple.backend.group.dto.response.GroupCursorResponseDto;
@@ -16,6 +17,7 @@ import org.triple.backend.group.entity.joinApply.JoinApply;
 import org.triple.backend.group.entity.userGroup.JoinStatus;
 import org.triple.backend.group.entity.userGroup.Role;
 import org.triple.backend.group.entity.userGroup.UserGroup;
+import org.triple.backend.group.exception.GroupErrorCode;
 import org.triple.backend.group.repository.GroupJpaRepository;
 import org.triple.backend.group.repository.JoinJpaApplyRepository;
 import org.triple.backend.group.repository.UserGroupJpaRepository;
@@ -26,6 +28,7 @@ import org.triple.backend.user.repository.UserJpaRepository;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.triple.backend.group.fixture.GroupFixtures.privateGroup;
 import static org.triple.backend.group.fixture.GroupFixtures.publicGroup;
 
@@ -201,5 +204,21 @@ public class GroupServiceTest {
         assertThat(groupJpaRepository.findById(savedGroup.getId())).isEmpty();
         assertThat(userGroupJpaRepository.findAll()).isEmpty();
         assertThat(joinApplyJpaRepository.findAll()).isEmpty();
+    }
+
+
+    @Test
+    @DisplayName("존재하지 않는 그룹 ID로 삭제 요청 시 GROUP_NOT_FOUND 예외가 발생한다")
+    void 존재하지_않는_그룹_ID로_삭제_요청_시_GROUP_NOT_FOUND_예외가_발생한다() {
+        // given
+        Long notExistGroupId = 999999L;
+
+        // when & then
+        assertThatThrownBy(() -> groupService.delete(notExistGroupId))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(ex -> {
+                    BusinessException be = (BusinessException) ex;
+                    assertThat(be.getErrorCode()).isEqualTo(GroupErrorCode.GROUP_NOT_FOUND);
+                });
     }
 }

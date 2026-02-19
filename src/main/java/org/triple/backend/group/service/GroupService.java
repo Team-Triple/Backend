@@ -27,17 +27,11 @@ public class GroupService {
     private final UserJpaRepository userJpaRepository;
 
     @Transactional
-    public CreateGroupResponseDto create(final CreateGroupRequestDto createGroupRequestDto, final Long userId) {
+    public CreateGroupResponseDto create(final CreateGroupRequestDto dto, final Long userId) {
 
         User user = userJpaRepository.findById(userId).orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
-        Group group = Group.builder()
-                .name(createGroupRequestDto.name())
-                .description(createGroupRequestDto.description())
-                .memberLimit(createGroupRequestDto.memberLimit())
-                .groupKind(createGroupRequestDto.groupKind())
-                .thumbNailUrl(createGroupRequestDto.thumbNailUrl())
-                .build();
+        Group group = Group.create(dto.groupKind(), dto.name(), dto.description(), dto.thumbNailUrl(), dto.memberLimit());
 
         group.addMember(user, Role.OWNER);
         Group savedGroup = groupJpaRepository.save(group);

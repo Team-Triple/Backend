@@ -19,6 +19,7 @@ import org.triple.backend.auth.session.SessionManager;
 import org.triple.backend.common.ControllerTest;
 import tools.jackson.databind.ObjectMapper;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
@@ -26,8 +27,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
+import static org.springframework.restdocs.headers.HeaderDocumentation.headerWithName;
+import static org.springframework.restdocs.headers.HeaderDocumentation.responseHeaders;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -113,5 +120,29 @@ public class AuthControllerTest extends ControllerTest {
 
         verify(csrfTokenManager, times(1)).getOrCreateToken(any(HttpServletRequest.class));
         verify(authService, times(1)).login(any(AuthLoginRequestDto.class), any(HttpServletRequest.class));
+    }
+
+    @Test
+    @DisplayName("로그아웃 시 세션 무효화와 login_status/JSESSIONID 쿠키 만료를 수행한다")
+    void 로그아웃_시_세션_무효화와_쿠키_만료를_수행한다() throws Exception {
+        // when
+        var result = mockMvc.perform(get("/auth/logout"))
+                .andExpect(status().isOk())
+                .andDo(document("auth/logout",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        responseHeaders(
+                                headerWithName(HttpHeaders.SET_COOKIE)
+                                        .description("만료 쿠키. login_status와 JSESSIONID가 각각 Max-Age=0으로 내려갑니다.")
+                        )))
+                .andReturn();
+
+        // then
+        verify(authService, times(1)).logout(any(HttpServletRequest.class));
+
+        var setCookies = result.getResponse().getHeaders(HttpHeaders.SET_COOKIE);
+        assertThat(setCookies)
+                .anySatisfy(cookie -> assertThat(cookie).contains("login_status=").contains("Max-Age=0"))
+                .anySatisfy(cookie -> assertThat(cookie).contains("JSESSIONID=").contains("Max-Age=0"));
     }
 }

@@ -157,11 +157,11 @@ public class GroupJpaRepositoryTest {
             Group tx1Group = em1.find(Group.class, base.getId());
             Group tx2Group = em2.find(Group.class, base.getId());
 
-            tx1Group.update(Group.create(GroupKind.PRIVATE, "수정-1", "설명-1", "https://example.com/1.png", 20));
+            tx1Group.update(GroupKind.PRIVATE, "수정-1", "설명-1", "https://example.com/1.png", 20);
             em1.flush();
             em1.getTransaction().commit();
 
-            tx2Group.update(Group.create(GroupKind.PUBLIC, "수정-2", "설명-2", "https://example.com/2.png", 30));
+            tx2Group.update(GroupKind.PUBLIC, "수정-2", "설명-2", "https://example.com/2.png", 30);
 
             boolean conflictRaised = false;
             try {

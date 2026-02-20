@@ -95,8 +95,7 @@ public class GroupService {
                 throw new BusinessException(GroupErrorCode.NOT_GROUP_OWNER);
             }
 
-            Group updatedGroup = Group.create(dto.groupKind(), dto.name(), dto.description(), dto.thumbNailUrl(), dto.memberLimit());
-            group.update(updatedGroup);
+            group.update(dto.groupKind(), dto.name(), dto.description(), dto.thumbNailUrl(), dto.memberLimit());
             groupJpaRepository.flush();
 
             return new GroupUpdateResponseDto(

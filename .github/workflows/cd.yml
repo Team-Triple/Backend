@@ -35,7 +35,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout deploy ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch_name || github.event.workflow_run.head_sha }}
 
       - name: Set deploy vars
         run: |
@@ -81,10 +84,22 @@ jobs:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           DEPLOY_PATH="${DEPLOY_PATH:-/home/ubuntu/deploy}"
+          ENV_FILE="${GITHUB_WORKSPACE}/.env"
+          COMPOSE_FILE="${GITHUB_WORKSPACE}/docker-compose.yml"
+
+          if [ ! -f "${COMPOSE_FILE}" ]; then
+            COMPOSE_FILE="${GITHUB_WORKSPACE}/docker/docker-compose.yml"
+          fi
+
+          if [ ! -f "${COMPOSE_FILE}" ]; then
+            echo "docker-compose file not found in workspace"
+            find "${GITHUB_WORKSPACE}" -maxdepth 3 -type f \( -name '*compose*.yml' -o -name '*compose*.yaml' \) || true
+            exit 1
+          fi
 
           ssh -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no ubuntu@"${TARGET_HOST}" "mkdir -p ${DEPLOY_PATH}"
-          scp -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no .env ubuntu@"${TARGET_HOST}":"${DEPLOY_PATH}"/.env
-          scp -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no docker-compose.yml ubuntu@"${TARGET_HOST}":"${DEPLOY_PATH}"/docker-compose.yml
+          scp -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no "${ENV_FILE}" ubuntu@"${TARGET_HOST}":"${DEPLOY_PATH}"/.env
+          scp -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no "${COMPOSE_FILE}" ubuntu@"${TARGET_HOST}":"${DEPLOY_PATH}"/docker-compose.yml
           ssh -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no ubuntu@"${TARGET_HOST}" "chmod 600 ${DEPLOY_PATH}/.env"
 
       - name: Deploy

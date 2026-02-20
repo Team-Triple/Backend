@@ -37,6 +37,9 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.triple.backend.global.constants.AuthConstants.CSRF_TOKEN;
+import static org.triple.backend.global.constants.AuthConstants.CSRF_TOKEN_KEY;
+import static org.triple.backend.global.constants.AuthConstants.USER_SESSION_KEY;
 
 @WebMvcTest(AuthController.class)
 public class AuthControllerTest extends ControllerTest {
@@ -66,7 +69,7 @@ public class AuthControllerTest extends ControllerTest {
         when(authService.login(eq(req), any(HttpServletRequest.class)))
                 .thenReturn(new AuthLoginResponseDto("test", "test@test.com","https://test.png"));
         when(csrfTokenManager.getOrCreateToken(any(HttpServletRequest.class)))
-                .thenReturn("csrf-token");
+                .thenReturn(CSRF_TOKEN);
 
         // when & then
         mockMvc.perform(post("/auth/login")
@@ -126,14 +129,14 @@ public class AuthControllerTest extends ControllerTest {
     @DisplayName("로그아웃 시 세션 무효화와 login_status/JSESSIONID 쿠키 만료를 수행한다")
     void 로그아웃_시_세션_무효화와_쿠키_만료를_수행한다() throws Exception {
         // given
-        given(csrfTokenManager.isValid(any(HttpServletRequest.class), eq("csrf-token")))
+        given(csrfTokenManager.isValid(any(HttpServletRequest.class), eq(CSRF_TOKEN)))
                 .willReturn(true);
 
         // when
         var result = mockMvc.perform(post("/auth/logout")
-                        .header(CsrfTokenManager.CSRF_HEADER, "csrf-token")
-                        .sessionAttr(SessionManager.SESSION_KEY, 1L)
-                        .sessionAttr(CsrfTokenManager.CSRF_TOKEN_KEY, "csrf-token"))
+                        .header(CsrfTokenManager.CSRF_HEADER, CSRF_TOKEN)
+                        .sessionAttr(USER_SESSION_KEY, 1L)
+                        .sessionAttr(CSRF_TOKEN_KEY, CSRF_TOKEN))
                 .andExpect(status().isOk())
                 .andDo(document("auth/logout",
                         preprocessRequest(prettyPrint()),
@@ -166,8 +169,8 @@ public class AuthControllerTest extends ControllerTest {
 
         // when & then
         mockMvc.perform(post("/auth/logout")
-                        .sessionAttr(SessionManager.SESSION_KEY, 1L)
-                        .sessionAttr(CsrfTokenManager.CSRF_TOKEN_KEY, "csrf-token"))
+                        .sessionAttr(USER_SESSION_KEY, 1L)
+                        .sessionAttr(CSRF_TOKEN_KEY, CSRF_TOKEN))
                 .andExpect(status().isForbidden());
 
         verify(authService, never()).logout(any(HttpServletRequest.class));

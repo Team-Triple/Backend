@@ -11,7 +11,7 @@ import org.triple.backend.common.annotation.IntegrationTest;
 import org.triple.backend.group.entity.group.Group;
 import org.triple.backend.group.entity.group.GroupKind;
 import org.triple.backend.group.entity.joinApply.JoinApply;
-import org.triple.backend.group.entity.joinApply.JoinStatus;
+import org.triple.backend.group.entity.joinApply.JoinApplyStatus;
 import org.triple.backend.group.entity.userGroup.Role;
 import org.triple.backend.group.repository.GroupJpaRepository;
 import org.triple.backend.group.repository.JoinApplyJpaRepository;
@@ -73,7 +73,7 @@ public class JoinApplyIntegrationTest {
                 .andExpect(status().isOk());
 
         JoinApply savedApply = joinApplyJpaRepository.findByGroupIdAndUserId(group.getId(), applicant.getId()).orElseThrow();
-        assertThat(savedApply.getJoinStatus()).isEqualTo(JoinStatus.PENDING);
+        assertThat(savedApply.getJoinApplyStatus()).isEqualTo(JoinApplyStatus.PENDING);
     }
 
     @Test
@@ -132,7 +132,7 @@ public class JoinApplyIntegrationTest {
                 .andExpect(status().isOk());
 
         JoinApply reapplied = joinApplyJpaRepository.findByGroupIdAndUserId(group.getId(), applicant.getId()).orElseThrow();
-        assertThat(reapplied.getJoinStatus()).isEqualTo(JoinStatus.PENDING);
+        assertThat(reapplied.getJoinApplyStatus()).isEqualTo(JoinApplyStatus.PENDING);
     }
 
     @Test

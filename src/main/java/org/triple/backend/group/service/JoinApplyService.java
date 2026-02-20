@@ -39,7 +39,7 @@ public class JoinApplyService {
 
         JoinApply existingApply = joinApplyJpaRepository.findByGroupIdAndUserId(groupId, userId).orElse(null);
         if (existingApply != null) {
-            switch (existingApply.getJoinStatus()) {
+            switch (existingApply.getJoinApplyStatus()) {
                 case CANCELED:
                     existingApply.reapply();
                     return;

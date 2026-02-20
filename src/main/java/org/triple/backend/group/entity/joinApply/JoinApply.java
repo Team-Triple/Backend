@@ -38,7 +38,7 @@ public class JoinApply extends BaseEntity {
     private Group group;
 
     @Enumerated(EnumType.STRING)
-    private JoinStatus joinStatus;
+    private JoinApplyStatus joinApplyStatus;
 
     private LocalDateTime approvedAt;
 
@@ -50,31 +50,31 @@ public class JoinApply extends BaseEntity {
         return JoinApply.builder()
                 .user(user)
                 .group(group)
-                .joinStatus(JoinStatus.PENDING)
+                .joinApplyStatus(JoinApplyStatus.PENDING)
                 .build();
     }
 
     public boolean isCanceled() {
-        return this.joinStatus == JoinStatus.CANCELED;
+        return this.joinApplyStatus == JoinApplyStatus.CANCELED;
     }
 
     public void reapply() {
         if (!isCanceled()) {
             throw new IllegalStateException("취소된 신청만 재신청할 수 있습니다.");
         }
-        this.joinStatus = JoinStatus.PENDING;
+        this.joinApplyStatus = JoinApplyStatus.PENDING;
         this.approvedAt = null;
         this.rejectedAt = null;
         this.canceledAt = null;
     }
 
     public void reject() {
-        this.joinStatus = JoinStatus.REJECTED;
+        this.joinApplyStatus = JoinApplyStatus.REJECTED;
         this.rejectedAt = LocalDateTime.now();
     }
 
     public void cancel() {
-        this.joinStatus = JoinStatus.CANCELED;
+        this.joinApplyStatus = JoinApplyStatus.CANCELED;
         this.canceledAt = LocalDateTime.now();
     }
 }

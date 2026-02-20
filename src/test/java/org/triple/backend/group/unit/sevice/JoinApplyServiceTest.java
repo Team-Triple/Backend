@@ -11,7 +11,7 @@ import org.triple.backend.global.error.BusinessException;
 import org.triple.backend.group.entity.group.Group;
 import org.triple.backend.group.entity.group.GroupKind;
 import org.triple.backend.group.entity.joinApply.JoinApply;
-import org.triple.backend.group.entity.joinApply.JoinStatus;
+import org.triple.backend.group.entity.joinApply.JoinApplyStatus;
 import org.triple.backend.group.entity.userGroup.Role;
 import org.triple.backend.group.exception.JoinApplyErrorCode;
 import org.triple.backend.group.repository.GroupJpaRepository;
@@ -72,7 +72,7 @@ public class JoinApplyServiceTest {
         // then
         assertThat(joinApplyJpaRepository.count()).isEqualTo(1);
         JoinApply savedApply = joinApplyJpaRepository.findByGroupIdAndUserId(group.getId(), applicant.getId()).orElseThrow();
-        assertThat(savedApply.getJoinStatus()).isEqualTo(JoinStatus.PENDING);
+        assertThat(savedApply.getJoinApplyStatus()).isEqualTo(JoinApplyStatus.PENDING);
     }
 
     @Test
@@ -125,7 +125,7 @@ public class JoinApplyServiceTest {
 
         // then
         JoinApply reapplied = joinApplyJpaRepository.findByGroupIdAndUserId(group.getId(), applicant.getId()).orElseThrow();
-        assertThat(reapplied.getJoinStatus()).isEqualTo(JoinStatus.PENDING);
+        assertThat(reapplied.getJoinApplyStatus()).isEqualTo(JoinApplyStatus.PENDING);
         assertThat(joinApplyJpaRepository.count()).isEqualTo(1);
     }
 

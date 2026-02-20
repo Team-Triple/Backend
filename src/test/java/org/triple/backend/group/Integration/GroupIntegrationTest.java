@@ -28,14 +28,14 @@ import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.triple.backend.global.constants.AuthConstants.CSRF_TOKEN;
+import static org.triple.backend.global.constants.AuthConstants.CSRF_TOKEN_KEY;
+import static org.triple.backend.global.constants.AuthConstants.USER_SESSION_KEY;
 import static org.triple.backend.group.fixture.GroupFixtures.privateGroup;
 import static org.triple.backend.group.fixture.GroupFixtures.publicGroup;
 
 @IntegrationTest
 public class GroupIntegrationTest {
-
-    private static final String USER_SESSION_KEY = "USER_ID";
-    private static final String CSRF_TOKEN = "csrf-token";
 
     @Autowired
     private MockMvc mockMvc;
@@ -86,7 +86,7 @@ public class GroupIntegrationTest {
         // when
         var result = mockMvc.perform(post("/groups")
                         .sessionAttr(USER_SESSION_KEY, owner.getId())
-                        .sessionAttr(CsrfTokenManager.CSRF_TOKEN_KEY, CSRF_TOKEN)
+                        .sessionAttr(CSRF_TOKEN_KEY, CSRF_TOKEN)
                         .header(CsrfTokenManager.CSRF_HEADER, CSRF_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
@@ -192,7 +192,7 @@ public class GroupIntegrationTest {
         // when
         mockMvc.perform(delete("/groups/{groupId}", savedGroup.getId())
                         .sessionAttr(USER_SESSION_KEY, owner.getId())
-                        .sessionAttr(CsrfTokenManager.CSRF_TOKEN_KEY, CSRF_TOKEN)
+                        .sessionAttr(CSRF_TOKEN_KEY, CSRF_TOKEN)
                         .header(CsrfTokenManager.CSRF_HEADER, CSRF_TOKEN))
                 .andExpect(status().isOk());
 
@@ -231,7 +231,7 @@ public class GroupIntegrationTest {
         // when & then
         mockMvc.perform(patch("/groups/{groupId}", savedGroup.getId())
                         .sessionAttr(USER_SESSION_KEY, owner.getId())
-                        .sessionAttr(CsrfTokenManager.CSRF_TOKEN_KEY, CSRF_TOKEN)
+                        .sessionAttr(CSRF_TOKEN_KEY, CSRF_TOKEN)
                         .header(CsrfTokenManager.CSRF_HEADER, CSRF_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
@@ -290,7 +290,7 @@ public class GroupIntegrationTest {
         // when & then
         mockMvc.perform(patch("/groups/{groupId}", savedGroup.getId())
                         .sessionAttr(USER_SESSION_KEY, otherUser.getId())
-                        .sessionAttr(CsrfTokenManager.CSRF_TOKEN_KEY, CSRF_TOKEN)
+                        .sessionAttr(CSRF_TOKEN_KEY, CSRF_TOKEN)
                         .header(CsrfTokenManager.CSRF_HEADER, CSRF_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))

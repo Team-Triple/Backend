@@ -14,7 +14,6 @@ import org.triple.backend.auth.oauth.OauthProvider;
 import org.triple.backend.auth.oauth.OauthUser;
 import org.triple.backend.auth.oauth.kakao.KakaoOauthClient;
 import org.triple.backend.auth.session.CsrfTokenManager;
-import org.triple.backend.auth.session.SessionManager;
 import org.triple.backend.common.annotation.IntegrationTest;
 import org.triple.backend.user.entity.User;
 import org.triple.backend.user.repository.UserJpaRepository;
@@ -27,6 +26,9 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.triple.backend.global.constants.AuthConstants.CSRF_TOKEN;
+import static org.triple.backend.global.constants.AuthConstants.CSRF_TOKEN_KEY;
+import static org.triple.backend.global.constants.AuthConstants.USER_SESSION_KEY;
 
 @IntegrationTest
 class AuthIntegrationTest {
@@ -80,7 +82,7 @@ class AuthIntegrationTest {
         HttpSession session = result.getRequest().getSession(false);
         assertThat(session).isNotNull();
 
-        Object sessionUserIdObj = session.getAttribute(SessionManager.SESSION_KEY);
+        Object sessionUserIdObj = session.getAttribute(USER_SESSION_KEY);
         assertThat(sessionUserIdObj).isNotNull();
 
         User saved = userJpaRepository.findByProviderAndProviderId(OauthProvider.KAKAO, "kakao-1234")
@@ -113,7 +115,7 @@ class AuthIntegrationTest {
         // then
         HttpSession session = result.getRequest().getSession(false);
         if (session != null) {
-            assertThat(session.getAttribute(SessionManager.SESSION_KEY)).isNull();
+            assertThat(session.getAttribute(USER_SESSION_KEY)).isNull();
         }
 
         assertThat(userJpaRepository.count()).isEqualTo(0);
@@ -124,9 +126,9 @@ class AuthIntegrationTest {
     void 로그아웃_성공_시_세션을_무효화하고_쿠키를_만료시킨다() throws Exception {
         // when
         MvcResult result = mockMvc.perform(post("/auth/logout")
-                        .sessionAttr(SessionManager.SESSION_KEY, 1L)
-                        .sessionAttr(CsrfTokenManager.CSRF_TOKEN_KEY, "csrf-token")
-                        .header(CsrfTokenManager.CSRF_HEADER, "csrf-token"))
+                        .sessionAttr(USER_SESSION_KEY, 1L)
+                        .sessionAttr(CSRF_TOKEN_KEY, CSRF_TOKEN)
+                        .header(CsrfTokenManager.CSRF_HEADER, CSRF_TOKEN))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -144,8 +146,8 @@ class AuthIntegrationTest {
     @DisplayName("로그인 세션이 있고 CSRF 토큰이 없으면 로그아웃은 403을 반환한다")
     void 로그인_세션이_있고_CSRF_토큰이_없으면_로그아웃은_403을_반환한다() throws Exception {
         mockMvc.perform(post("/auth/logout")
-                        .sessionAttr(SessionManager.SESSION_KEY, 1L)
-                        .sessionAttr(CsrfTokenManager.CSRF_TOKEN_KEY, "csrf-token"))
+                        .sessionAttr(USER_SESSION_KEY, 1L)
+                        .sessionAttr(CSRF_TOKEN_KEY, CSRF_TOKEN))
                 .andExpect(status().isForbidden());
     }
 }

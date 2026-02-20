@@ -31,12 +31,12 @@ import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.triple.backend.global.constants.AuthConstants.CSRF_TOKEN;
+import static org.triple.backend.global.constants.AuthConstants.CSRF_TOKEN_KEY;
+import static org.triple.backend.global.constants.AuthConstants.USER_SESSION_KEY;
 
 @WebMvcTest(GroupController.class)
 public class GroupControllerTest extends ControllerTest {
-
-    private static final String USER_SESSION_KEY = "USER_ID";
-    private static final String CSRF_TOKEN = "csrf-token";
 
     @MockitoBean
     private GroupService groupService;
@@ -277,7 +277,7 @@ public class GroupControllerTest extends ControllerTest {
     private RequestPostProcessor loginSessionAndCsrf() {
         return request -> {
             request.getSession(true).setAttribute(USER_SESSION_KEY, 1L);
-            request.getSession().setAttribute(CsrfTokenManager.CSRF_TOKEN_KEY, CSRF_TOKEN);
+            request.getSession().setAttribute(CSRF_TOKEN_KEY, CSRF_TOKEN);
             request.addHeader(CsrfTokenManager.CSRF_HEADER, CSRF_TOKEN);
             return request;
         };

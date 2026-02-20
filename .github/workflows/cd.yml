@@ -1,0 +1,100 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.event.workflow_run.head_branch || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        (
+          github.event.workflow_run.head_branch == 'develop' ||
+          github.event.workflow_run.head_branch == 'main'
+        )
+      )
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set deploy vars
+        run: |
+          mkdir -p ~/.ssh
+
+          BRANCH_NAME="${{ github.event.workflow_run.head_branch || github.ref_name }}"
+          echo "BRANCH_NAME=${BRANCH_NAME}" >> $GITHUB_ENV
+          echo "IMAGE_TAG=${{ github.event.workflow_run.head_sha || github.sha }}" >> $GITHUB_ENV
+
+          if [ "${BRANCH_NAME}" = "develop" ]; then
+            echo "${{ secrets.EC2_SSH_KEY_DEV }}" > ~/.ssh/deploy_key.pem
+            echo "TARGET_HOST=${{ secrets.DEV_HOST }}" >> $GITHUB_ENV
+          else
+            echo "${{ secrets.EC2_SSH_KEY_PROD }}" > ~/.ssh/deploy_key.pem
+            echo "TARGET_HOST=${{ secrets.PROD_HOST }}" >> $GITHUB_ENV
+          fi
+
+          chmod 600 ~/.ssh/deploy_key.pem
+
+      - name: Write .env
+        run: |
+          if [ "${BRANCH_NAME}" = "develop" ]; then
+            printf "%s" "${{ secrets.ENV_DEV }}" > .env
+          else
+            printf "%s" "${{ secrets.ENV_PROD }}" > .env
+          fi
+
+      - name: Upload files
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          DEPLOY_PATH="${DEPLOY_PATH:-/home/ubuntu/deploy}"
+
+          ssh -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no ubuntu@${TARGET_HOST} "mkdir -p ${DEPLOY_PATH}"
+
+          scp -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no .env ubuntu@${TARGET_HOST}:${DEPLOY_PATH}/.env
+          scp -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no docker-compose.yml ubuntu@${TARGET_HOST}:${DEPLOY_PATH}/docker-compose.yml
+
+          ssh -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no ubuntu@${TARGET_HOST} "chmod 600 ${DEPLOY_PATH}/.env"
+
+      - name: Deploy
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          DEPLOY_PATH="${DEPLOY_PATH:-/home/ubuntu/deploy}"
+
+          ssh -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no ubuntu@${TARGET_HOST} "
+            set -e
+            cd ${DEPLOY_PATH}
+            docker pull ghcr.io/team-triple/backend:${IMAGE_TAG}
+            IMAGE_TAG=${IMAGE_TAG} docker compose up -d
+            docker image prune -f
+          "
+          ssh -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no ubuntu@${TARGET_HOST} "mkdir -p ${DEPLOY_PATH}"
+          
+          scp -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no .env ubuntu@${TARGET_HOST}:${DEPLOY_PATH}/.env
+          scp -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no docker-compose.yml ubuntu@${TARGET_HOST}:${DEPLOY_PATH}/docker-compose.yml
+          
+          ssh -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no ubuntu@${TARGET_HOST} "chmod 600 ${DEPLOY_PATH}/.env"
+
+      - name: Deploy
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          DEPLOY_PATH="${DEPLOY_PATH:-/home/ubuntu/deploy}"
+          
+          ssh -i ~/.ssh/deploy_key.pem -o StrictHostKeyChecking=no ubuntu@${TARGET_HOST} "
+            set -e
+            cd ${DEPLOY_PATH}
+            docker pull ghcr.io/team-triple/backend:${IMAGE_TAG}
+            IMAGE_TAG=${IMAGE_TAG} docker compose up -d
+            docker image prune -f
+          "

@@ -46,18 +46,12 @@ jobs:
   deploy:
     if: |
       (
-        github.event_name == 'workflow_call' &&
-        (
-          inputs.branch_name == 'develop' ||
-          inputs.branch_name == 'main'
-        )
+        inputs.branch_name == 'develop' ||
+        inputs.branch_name == 'main'
       ) ||
       (
-        github.event_name == 'workflow_dispatch' &&
-        (
-          github.event.inputs.branch_name == 'develop' ||
-          github.event.inputs.branch_name == 'main'
-        )
+        github.event.inputs.branch_name == 'develop' ||
+        github.event.inputs.branch_name == 'main'
       )
     runs-on: ubuntu-latest
 

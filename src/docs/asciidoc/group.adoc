@@ -21,7 +21,5 @@ include::{snippets}/groups/delete/http-response.adoc[]
 
 == 그룹 수정
 include::{snippets}/groups/update/path-parameters.adoc[]
-include::{snippets}/groups/update/request-fields.adoc[]
-include::{snippets}/groups/update/response-fields.adoc[]
 include::{snippets}/groups/update/http-request.adoc[]
 include::{snippets}/groups/update/http-response.adoc[]

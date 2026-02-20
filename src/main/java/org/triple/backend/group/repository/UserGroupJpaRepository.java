@@ -18,8 +18,6 @@ public interface UserGroupJpaRepository extends JpaRepository<UserGroup, Long> {
 
     boolean existsByGroupIdAndUserIdAndRole(Long groupId, Long userId, Role role);
 
-    boolean existsByGroupIdAndUserIdAndJoinStatus(Long groupId, Long userId, JoinStatus joinStatus);
-
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM UserGroup ug WHERE ug.group.id = :groupId")
     void bulkDeleteByGroupId(Long groupId);

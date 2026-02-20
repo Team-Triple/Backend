@@ -35,7 +35,8 @@ public class JoinApplyService {
         }
 
         User findUser = userJpaRepository.findById(userId).orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
-        Group findGroup = groupJpaRepository.findById(groupId).orElseThrow(() -> new BusinessException(GroupErrorCode.GROUP_NOT_FOUND));
+        Group findGroup = groupJpaRepository.findByIdForUpdate(groupId)
+                .orElseThrow(() -> new BusinessException(GroupErrorCode.GROUP_NOT_FOUND));
 
         JoinApply existingApply = joinApplyJpaRepository.findByGroupIdAndUserId(groupId, userId).orElse(null);
         if (existingApply != null) {
